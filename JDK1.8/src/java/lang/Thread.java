@@ -312,6 +312,7 @@ public class Thread implements Runnable {
      *                                  <i>interrupted status</i> of the current thread is
      *                                  cleared when this exception is thrown.
      */
+    //第一参数为毫秒，第二个参数为纳秒
     public static void sleep(long millis, int nanos)
             throws InterruptedException {
         if (millis < 0) {
@@ -658,6 +659,7 @@ public class Thread implements Runnable {
          *
          * A zero status value corresponds to state "NEW".
          */
+        //判断是否首次启动
         if (threadStatus != 0)
             throw new IllegalThreadStateException();
 
@@ -668,6 +670,7 @@ public class Thread implements Runnable {
 
         boolean started = false;
         try {
+            //启动线程
             start0();
             started = true;
         } finally {
@@ -862,6 +865,8 @@ public class Thread implements Runnable {
      * @revised 6.0
      * @spec JSR-51
      */
+    //此方法读取线程的中断标志位，并会重置。
+    //抛出该异常的同时，会重置中断标志位。
     public void interrupt() {
         if (this != Thread.currentThread())
             checkAccess();
@@ -911,6 +916,7 @@ public class Thread implements Runnable {
      * @revised 6.0
      * @see #interrupted()
      */
+    //此方法只会读取线程的中断标志位，并不会重置。
     public boolean isInterrupted() {
         return isInterrupted(false);
     }
@@ -1176,6 +1182,7 @@ public class Thread implements Runnable {
      *                                  <i>interrupted status</i> of the current thread is
      *                                  cleared when this exception is thrown.
      */
+    //参数为毫秒
     public final synchronized void join(long millis)
             throws InterruptedException {
         long base = System.currentTimeMillis();
@@ -1973,6 +1980,7 @@ public class Thread implements Runnable {
     private native void suspend0();
 
     private native void resume0();
+
 
     private native void interrupt0();
 

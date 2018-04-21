@@ -34,6 +34,7 @@
  */
 
 package java.util.concurrent.locks;
+
 import java.util.concurrent.TimeUnit;
 import java.util.Date;
 
@@ -46,7 +47,7 @@ import java.util.Date;
  * Where a {@code Lock} replaces the use of {@code synchronized} methods
  * and statements, a {@code Condition} replaces the use of the Object
  * monitor methods.
- *
+ * <p>
  * <p>Conditions (also known as <em>condition queues</em> or
  * <em>condition variables</em>) provide a means for one thread to
  * suspend execution (to &quot;wait&quot;) until notified by another
@@ -56,11 +57,11 @@ import java.util.Date;
  * condition. The key property that waiting for a condition provides
  * is that it <em>atomically</em> releases the associated lock and
  * suspends the current thread, just like {@code Object.wait}.
- *
+ * <p>
  * <p>A {@code Condition} instance is intrinsically bound to a lock.
  * To obtain a {@code Condition} instance for a particular {@link Lock}
  * instance use its {@link Lock#newCondition newCondition()} method.
- *
+ * <p>
  * <p>As an example, suppose we have a bounded buffer which supports
  * {@code put} and {@code take} methods.  If a
  * {@code take} is attempted on an empty buffer, then the thread will block
@@ -110,11 +111,11 @@ import java.util.Date;
  *   }
  * }
  * </pre>
- *
+ * <p>
  * (The {@link java.util.concurrent.ArrayBlockingQueue} class provides
  * this functionality, so there is no reason to implement this
  * sample usage class.)
- *
+ * <p>
  * <p>A {@code Condition} implementation can provide behavior and semantics
  * that is
  * different from that of the {@code Object} monitor methods, such as
@@ -122,7 +123,7 @@ import java.util.Date;
  * when performing notifications.
  * If an implementation provides such specialized semantics then the
  * implementation must document those semantics.
- *
+ * <p>
  * <p>Note that {@code Condition} instances are just normal objects and can
  * themselves be used as the target in a {@code synchronized} statement,
  * and can have their own monitor {@link Object#wait wait} and
@@ -133,12 +134,12 @@ import java.util.Date;
  * {@linkplain #await waiting} and {@linkplain #signal signalling} methods.
  * It is recommended that to avoid confusion you never use {@code Condition}
  * instances in this way, except perhaps within their own implementation.
- *
+ * <p>
  * <p>Except where noted, passing a {@code null} value for any parameter
  * will result in a {@link NullPointerException} being thrown.
- *
+ * <p>
  * <h3>Implementation Considerations</h3>
- *
+ * <p>
  * <p>When waiting upon a {@code Condition}, a &quot;<em>spurious
  * wakeup</em>&quot; is permitted to occur, in
  * general, as a concession to the underlying platform semantics.
@@ -148,7 +149,7 @@ import java.util.Date;
  * free to remove the possibility of spurious wakeups but it is
  * recommended that applications programmers always assume that they can
  * occur and so always wait in a loop.
- *
+ * <p>
  * <p>The three forms of condition waiting
  * (interruptible, non-interruptible, and timed) may differ in their ease of
  * implementation on some platforms and in their performance characteristics.
@@ -156,32 +157,32 @@ import java.util.Date;
  * specific semantics such as ordering guarantees.
  * Further, the ability to interrupt the actual suspension of the thread may
  * not always be feasible to implement on all platforms.
- *
+ * <p>
  * <p>Consequently, an implementation is not required to define exactly the
  * same guarantees or semantics for all three forms of waiting, nor is it
  * required to support interruption of the actual suspension of the thread.
- *
+ * <p>
  * <p>An implementation is required to
  * clearly document the semantics and guarantees provided by each of the
  * waiting methods, and when an implementation does support interruption of
  * thread suspension then it must obey the interruption semantics as defined
  * in this interface.
- *
+ * <p>
  * <p>As interruption generally implies cancellation, and checks for
  * interruption are often infrequent, an implementation can favor responding
  * to an interrupt over normal method return. This is true even if it can be
  * shown that the interrupt occurred after another action that may have
  * unblocked the thread. An implementation should document this behavior.
  *
- * @since 1.5
  * @author Doug Lea
+ * @since 1.5
  */
 public interface Condition {
 
     /**
      * Causes the current thread to wait until it is signalled or
      * {@linkplain Thread#interrupt interrupted}.
-     *
+     * <p>
      * <p>The lock associated with this {@code Condition} is atomically
      * released and the current thread becomes disabled for thread scheduling
      * purposes and lies dormant until <em>one</em> of four things happens:
@@ -195,11 +196,11 @@ public interface Condition {
      * current thread, and interruption of thread suspension is supported; or
      * <li>A &quot;<em>spurious wakeup</em>&quot; occurs.
      * </ul>
-     *
+     * <p>
      * <p>In all cases, before this method can return the current thread must
      * re-acquire the lock associated with this condition. When the
      * thread returns it is <em>guaranteed</em> to hold this lock.
-     *
+     * <p>
      * <p>If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
@@ -210,29 +211,29 @@ public interface Condition {
      * interrupted status is cleared. It is not specified, in the first
      * case, whether or not the test for interruption occurs before the lock
      * is released.
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>The current thread is assumed to hold the lock associated with this
      * {@code Condition} when this method is called.
      * It is up to the implementation to determine if this is
      * the case and if not, how to respond. Typically, an exception will be
      * thrown (such as {@link IllegalMonitorStateException}) and the
      * implementation must document that fact.
-     *
+     * <p>
      * <p>An implementation can favor responding to an interrupt over normal
      * method return in response to a signal. In that case the implementation
      * must ensure that the signal is redirected to another waiting thread, if
      * there is one.
      *
      * @throws InterruptedException if the current thread is interrupted
-     *         (and interruption of thread suspension is supported)
+     *                              (and interruption of thread suspension is supported)
      */
     void await() throws InterruptedException;
 
     /**
      * Causes the current thread to wait until it is signalled.
-     *
+     * <p>
      * <p>The lock associated with this condition is atomically
      * released and the current thread becomes disabled for thread scheduling
      * purposes and lies dormant until <em>one</em> of three things happens:
@@ -244,19 +245,19 @@ public interface Condition {
      * {@code Condition}; or
      * <li>A &quot;<em>spurious wakeup</em>&quot; occurs.
      * </ul>
-     *
+     * <p>
      * <p>In all cases, before this method can return the current thread must
      * re-acquire the lock associated with this condition. When the
      * thread returns it is <em>guaranteed</em> to hold this lock.
-     *
+     * <p>
      * <p>If the current thread's interrupted status is set when it enters
      * this method, or it is {@linkplain Thread#interrupt interrupted}
      * while waiting, it will continue to wait until signalled. When it finally
      * returns from this method its interrupted status will still
      * be set.
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>The current thread is assumed to hold the lock associated with this
      * {@code Condition} when this method is called.
      * It is up to the implementation to determine if this is
@@ -269,7 +270,7 @@ public interface Condition {
     /**
      * Causes the current thread to wait until it is signalled or interrupted,
      * or the specified waiting time elapses.
-     *
+     * <p>
      * <p>The lock associated with this condition is atomically
      * released and the current thread becomes disabled for thread scheduling
      * purposes and lies dormant until <em>one</em> of five things happens:
@@ -284,11 +285,11 @@ public interface Condition {
      * <li>The specified waiting time elapses; or
      * <li>A &quot;<em>spurious wakeup</em>&quot; occurs.
      * </ul>
-     *
+     * <p>
      * <p>In all cases, before this method can return the current thread must
      * re-acquire the lock associated with this condition. When the
      * thread returns it is <em>guaranteed</em> to hold this lock.
-     *
+     * <p>
      * <p>If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
@@ -299,7 +300,7 @@ public interface Condition {
      * interrupted status is cleared. It is not specified, in the first
      * case, whether or not the test for interruption occurs before the lock
      * is released.
-     *
+     * <p>
      * <p>The method returns an estimate of the number of nanoseconds
      * remaining to wait given the supplied {@code nanosTimeout}
      * value upon return, or a value less than or equal to zero if it
@@ -307,8 +308,8 @@ public interface Condition {
      * long to re-wait in cases where the wait returns but an awaited
      * condition still does not hold. Typical uses of this method take
      * the following form:
-     *
-     *  <pre> {@code
+     * <p>
+     * <pre> {@code
      * boolean aMethod(long timeout, TimeUnit unit) {
      *   long nanos = unit.toNanos(timeout);
      *   lock.lock();
@@ -323,22 +324,22 @@ public interface Condition {
      *     lock.unlock();
      *   }
      * }}</pre>
-     *
+     * <p>
      * <p>Design note: This method requires a nanosecond argument so
      * as to avoid truncation errors in reporting remaining times.
      * Such precision loss would make it difficult for programmers to
      * ensure that total waiting times are not systematically shorter
      * than specified when re-waits occur.
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>The current thread is assumed to hold the lock associated with this
      * {@code Condition} when this method is called.
      * It is up to the implementation to determine if this is
      * the case and if not, how to respond. Typically, an exception will be
      * thrown (such as {@link IllegalMonitorStateException}) and the
      * implementation must document that fact.
-     *
+     * <p>
      * <p>An implementation can favor responding to an interrupt over normal
      * method return in response to a signal, or over indicating the elapse
      * of the specified waiting time. In either case the implementation
@@ -347,13 +348,13 @@ public interface Condition {
      *
      * @param nanosTimeout the maximum time to wait, in nanoseconds
      * @return an estimate of the {@code nanosTimeout} value minus
-     *         the time spent waiting upon return from this method.
-     *         A positive value may be used as the argument to a
-     *         subsequent call to this method to finish waiting out
-     *         the desired time.  A value less than or equal to zero
-     *         indicates that no time remains.
+     * the time spent waiting upon return from this method.
+     * A positive value may be used as the argument to a
+     * subsequent call to this method to finish waiting out
+     * the desired time.  A value less than or equal to zero
+     * indicates that no time remains.
      * @throws InterruptedException if the current thread is interrupted
-     *         (and interruption of thread suspension is supported)
+     *                              (and interruption of thread suspension is supported)
      */
     long awaitNanos(long nanosTimeout) throws InterruptedException;
 
@@ -361,21 +362,21 @@ public interface Condition {
      * Causes the current thread to wait until it is signalled or interrupted,
      * or the specified waiting time elapses. This method is behaviorally
      * equivalent to:
-     *  <pre> {@code awaitNanos(unit.toNanos(time)) > 0}</pre>
+     * <pre> {@code awaitNanos(unit.toNanos(time)) > 0}</pre>
      *
      * @param time the maximum time to wait
      * @param unit the time unit of the {@code time} argument
      * @return {@code false} if the waiting time detectably elapsed
-     *         before return from the method, else {@code true}
+     * before return from the method, else {@code true}
      * @throws InterruptedException if the current thread is interrupted
-     *         (and interruption of thread suspension is supported)
+     *                              (and interruption of thread suspension is supported)
      */
     boolean await(long time, TimeUnit unit) throws InterruptedException;
 
     /**
      * Causes the current thread to wait until it is signalled or interrupted,
      * or the specified deadline elapses.
-     *
+     * <p>
      * <p>The lock associated with this condition is atomically
      * released and the current thread becomes disabled for thread scheduling
      * purposes and lies dormant until <em>one</em> of five things happens:
@@ -390,12 +391,12 @@ public interface Condition {
      * <li>The specified deadline elapses; or
      * <li>A &quot;<em>spurious wakeup</em>&quot; occurs.
      * </ul>
-     *
+     * <p>
      * <p>In all cases, before this method can return the current thread must
      * re-acquire the lock associated with this condition. When the
      * thread returns it is <em>guaranteed</em> to hold this lock.
-     *
-     *
+     * <p>
+     * <p>
      * <p>If the current thread:
      * <ul>
      * <li>has its interrupted status set on entry to this method; or
@@ -406,11 +407,11 @@ public interface Condition {
      * interrupted status is cleared. It is not specified, in the first
      * case, whether or not the test for interruption occurs before the lock
      * is released.
-     *
-     *
+     * <p>
+     * <p>
      * <p>The return value indicates whether the deadline has elapsed,
      * which can be used as follows:
-     *  <pre> {@code
+     * <pre> {@code
      * boolean aMethod(Date deadline) {
      *   boolean stillWaiting = true;
      *   lock.lock();
@@ -425,16 +426,16 @@ public interface Condition {
      *     lock.unlock();
      *   }
      * }}</pre>
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>The current thread is assumed to hold the lock associated with this
      * {@code Condition} when this method is called.
      * It is up to the implementation to determine if this is
      * the case and if not, how to respond. Typically, an exception will be
      * thrown (such as {@link IllegalMonitorStateException}) and the
      * implementation must document that fact.
-     *
+     * <p>
      * <p>An implementation can favor responding to an interrupt over normal
      * method return in response to a signal, or over indicating the passing
      * of the specified deadline. In either case the implementation
@@ -443,21 +444,21 @@ public interface Condition {
      *
      * @param deadline the absolute time to wait until
      * @return {@code false} if the deadline has elapsed upon return, else
-     *         {@code true}
+     * {@code true}
      * @throws InterruptedException if the current thread is interrupted
-     *         (and interruption of thread suspension is supported)
+     *                              (and interruption of thread suspension is supported)
      */
     boolean awaitUntil(Date deadline) throws InterruptedException;
 
     /**
      * Wakes up one waiting thread.
-     *
+     * <p>
      * <p>If any threads are waiting on this condition then one
      * is selected for waking up. That thread must then re-acquire the
      * lock before returning from {@code await}.
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>An implementation may (and typically does) require that the
      * current thread hold the lock associated with this {@code
      * Condition} when this method is called. Implementations must
@@ -469,13 +470,13 @@ public interface Condition {
 
     /**
      * Wakes up all waiting threads.
-     *
+     * <p>
      * <p>If any threads are waiting on this condition then they are
      * all woken up. Each thread must re-acquire the lock before it can
      * return from {@code await}.
-     *
+     * <p>
      * <p><b>Implementation Considerations</b>
-     *
+     * <p>
      * <p>An implementation may (and typically does) require that the
      * current thread hold the lock associated with this {@code
      * Condition} when this method is called. Implementations must

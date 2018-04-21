@@ -34,12 +34,13 @@
  */
 
 package java.util.concurrent.locks;
+
 import sun.misc.Unsafe;
 
 /**
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
- *
+ * <p>
  * <p>This class associates, with each thread that uses it, a permit
  * (in the sense of the {@link java.util.concurrent.Semaphore
  * Semaphore} class). A call to {@code park} will return immediately
@@ -47,7 +48,7 @@ import sun.misc.Unsafe;
  * it <em>may</em> block.  A call to {@code unpark} makes the permit
  * available, if it was not already available. (Unlike with Semaphores
  * though, permits do not accumulate. There is at most one.)
- *
+ * <p>
  * <p>Methods {@code park} and {@code unpark} provide efficient
  * means of blocking and unblocking threads that do not encounter the
  * problems that cause the deprecated methods {@code Thread.suspend}
@@ -62,7 +63,7 @@ import sun.misc.Unsafe;
  * optimization of a "busy wait" that does not waste as much time
  * spinning, but must be paired with an {@code unpark} to be
  * effective.
- *
+ * <p>
  * <p>The three forms of {@code park} each also support a
  * {@code blocker} object parameter. This object is recorded while
  * the thread is blocked to permit monitoring and diagnostic tools to
@@ -71,23 +72,23 @@ import sun.misc.Unsafe;
  * The use of these forms rather than the original forms without this
  * parameter is strongly encouraged. The normal argument to supply as
  * a {@code blocker} within a lock implementation is {@code this}.
- *
+ * <p>
  * <p>These methods are designed to be used as tools for creating
  * higher-level synchronization utilities, and are not in themselves
  * useful for most concurrency control applications.  The {@code park}
  * method is designed for use only in constructions of the form:
- *
- *  <pre> {@code
+ * <p>
+ * <pre> {@code
  * while (!canProceed()) { ... LockSupport.park(this); }}</pre>
- *
+ * <p>
  * where neither {@code canProceed} nor any other actions prior to the
  * call to {@code park} entail locking or blocking.  Because only one
  * permit is associated with each thread, any intermediary uses of
  * {@code park} could interfere with its intended effects.
- *
+ * <p>
  * <p><b>Sample Usage.</b> Here is a sketch of a first-in-first-out
  * non-reentrant lock class:
- *  <pre> {@code
+ * <pre> {@code
  * class FIFOMutex {
  *   private final AtomicBoolean locked = new AtomicBoolean(false);
  *   private final Queue<Thread> waiters
@@ -118,7 +119,8 @@ import sun.misc.Unsafe;
  * }}</pre>
  */
 public class LockSupport {
-    private LockSupport() {} // Cannot be instantiated.
+    private LockSupport() {}
+    // Cannot be instantiated.
 
     private static void setBlocker(Thread t, Object arg) {
         // Even though volatile, hotspot doesn't need a write barrier here.
@@ -134,7 +136,7 @@ public class LockSupport {
      * thread has not been started.
      *
      * @param thread the thread to unpark, or {@code null}, in which case
-     *        this operation has no effect
+     *               this operation has no effect
      */
     public static void unpark(Thread thread) {
         if (thread != null)
@@ -144,29 +146,29 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes unless the
      * permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call returns
      * immediately; otherwise
      * the current thread becomes disabled for thread scheduling
      * purposes and lies dormant until one of three things happens:
-     *
+     * <p>
      * <ul>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
      * for example, the interrupt status of the thread upon return.
      *
      * @param blocker the synchronization object responsible for this
-     *        thread parking
+     *                thread parking
      * @since 1.6
      */
     public static void park(Object blocker) {
@@ -179,24 +181,24 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes, for up to
      * the specified waiting time, unless the permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call
      * returns immediately; otherwise the current thread becomes disabled
      * for thread scheduling purposes and lies dormant until one of four
      * things happens:
-     *
+     * <p>
      * <ul>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread; or
-     *
+     * <p>
      * <li>The specified waiting time elapses; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
@@ -204,10 +206,11 @@ public class LockSupport {
      * upon return.
      *
      * @param blocker the synchronization object responsible for this
-     *        thread parking
-     * @param nanos the maximum number of nanoseconds to wait
+     *                thread parking
+     * @param nanos   the maximum number of nanoseconds to wait
      * @since 1.6
      */
+
     public static void parkNanos(Object blocker, long nanos) {
         if (nanos > 0) {
             Thread t = Thread.currentThread();
@@ -220,36 +223,37 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes, until
      * the specified deadline, unless the permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call
      * returns immediately; otherwise the current thread becomes disabled
      * for thread scheduling purposes and lies dormant until one of four
      * things happens:
-     *
+     * <p>
      * <ul>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts} the
      * current thread; or
-     *
+     * <p>
      * <li>The specified deadline passes; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
      * for example, the interrupt status of the thread, or the current time
      * upon return.
      *
-     * @param blocker the synchronization object responsible for this
-     *        thread parking
+     * @param blocker  the synchronization object responsible for this
+     *                 thread parking
      * @param deadline the absolute time, in milliseconds from the Epoch,
-     *        to wait until
+     *                 to wait until
      * @since 1.6
      */
+
     public static void parkUntil(Object blocker, long deadline) {
         Thread t = Thread.currentThread();
         setBlocker(t, blocker);
@@ -278,23 +282,23 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes unless the
      * permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call
      * returns immediately; otherwise the current thread becomes disabled
      * for thread scheduling purposes and lies dormant until one of three
      * things happens:
-     *
+     * <p>
      * <ul>
-     *
+     * <p>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
@@ -307,24 +311,24 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes, for up to
      * the specified waiting time, unless the permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call
      * returns immediately; otherwise the current thread becomes disabled
      * for thread scheduling purposes and lies dormant until one of four
      * things happens:
-     *
+     * <p>
      * <ul>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread; or
-     *
+     * <p>
      * <li>The specified waiting time elapses; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
@@ -341,24 +345,24 @@ public class LockSupport {
     /**
      * Disables the current thread for thread scheduling purposes, until
      * the specified deadline, unless the permit is available.
-     *
+     * <p>
      * <p>If the permit is available then it is consumed and the call
      * returns immediately; otherwise the current thread becomes disabled
      * for thread scheduling purposes and lies dormant until one of four
      * things happens:
-     *
+     * <p>
      * <ul>
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
-     *
+     * <p>
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread; or
-     *
+     * <p>
      * <li>The specified deadline passes; or
-     *
+     * <p>
      * <li>The call spuriously (that is, for no reason) returns.
      * </ul>
-     *
+     * <p>
      * <p>This method does <em>not</em> report which of these caused the
      * method to return. Callers should re-check the conditions which caused
      * the thread to park in the first place. Callers may also determine,
@@ -366,7 +370,7 @@ public class LockSupport {
      * upon return.
      *
      * @param deadline the absolute time, in milliseconds from the Epoch,
-     *        to wait until
+     *                 to wait until
      */
     public static void parkUntil(long deadline) {
         UNSAFE.park(true, deadline);
@@ -383,8 +387,7 @@ public class LockSupport {
             r ^= r << 13;   // xorshift
             r ^= r >>> 17;
             r ^= r << 5;
-        }
-        else if ((r = java.util.concurrent.ThreadLocalRandom.current().nextInt()) == 0)
+        } else if ((r = java.util.concurrent.ThreadLocalRandom.current().nextInt()) == 0)
             r = 1; // avoid zero
         UNSAFE.putInt(t, SECONDARY, r);
         return r;
@@ -396,19 +399,22 @@ public class LockSupport {
     private static final long SEED;
     private static final long PROBE;
     private static final long SECONDARY;
+
     static {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> tk = Thread.class;
             parkBlockerOffset = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("parkBlocker"));
+                    (tk.getDeclaredField("parkBlocker"));
             SEED = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSeed"));
+                    (tk.getDeclaredField("threadLocalRandomSeed"));
             PROBE = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomProbe"));
+                    (tk.getDeclaredField("threadLocalRandomProbe"));
             SECONDARY = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
-        } catch (Exception ex) { throw new Error(ex); }
+                    (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
     }
 
 }

@@ -289,6 +289,9 @@ import java.util.concurrent.TimeUnit;
  * @since 1.5
  *
  * 队列同步器
+ *
+ * https://www.cnblogs.com/waterystone/p/4920797.html
+ * http://www.cnblogs.com/leesf456/p/5350186.html
  */
 public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchronizer implements java.io.Serializable {
 
@@ -674,15 +677,15 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
          * traverse backwards from tail to find the actual
          * non-cancelled successor.
          */
-        Node s = node.next;
-        if (s == null || s.waitStatus > 0) {
+        Node s = node.next;//找到下一个需要唤醒的结点s
+        if (s == null || s.waitStatus > 0) { //如果为空或已取消
             s = null;
             for (Node t = tail; t != null && t != node; t = t.prev)
-                if (t.waitStatus <= 0)
+                if (t.waitStatus <= 0)//从这里可以看出，<=0的结点，都是还有效的结点。
                     s = t;
         }
         if (s != null)
-            LockSupport.unpark(s.thread);
+            LockSupport.unpark(s.thread);//唤醒
     }
 
     /**
@@ -709,12 +712,12 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
                 if (ws == Node.SIGNAL) {
                     if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
-                    unparkSuccessor(h);
+                    unparkSuccessor(h);;//唤醒后继
                 } else if (ws == 0 &&
                         !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
                     continue;                // loop on failed CAS
             }
-            if (h == head)                   // loop if head changed
+            if (h == head)          // head发生变化         // loop if head changed
                 break;
         }
     }
@@ -729,7 +732,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
      */
     private void setHeadAndPropagate(Node node, int propagate) {
         Node h = head; // Record old head for check below
-        setHead(node);
+        setHead(node);//head指向自己
         /*
          * Try to signal next queued node if:
          *   Propagation was indicated by caller,
@@ -746,6 +749,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
          * racing acquires/releases, so most need signals now or soon
          * anyway.
          */
+        //如果还有剩余量，继续唤醒下一个邻居线程
         if (propagate > 0 || h == null || h.waitStatus < 0 ||
                 (h = head) == null || h.waitStatus < 0) {
             Node s = node.next;
@@ -980,8 +984,8 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
      */
     private void doAcquireShared(int arg) {
         //标记等待过程中是否被中断过
-        final Node node = addWaiter(Node.SHARED);
-        boolean failed = true;
+        final Node node = addWaiter(Node.SHARED); //加入队列尾部
+        boolean failed = true;//是否成功标志
         try {
             //标记等待过程中是否被中断过
             boolean interrupted = false;
@@ -1391,8 +1395,8 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
      * @return the value returned from {@link #tryReleaseShared}
      */
     public final boolean releaseShared(int arg) {
-        if (tryReleaseShared(arg)) {
-            doReleaseShared();
+        if (tryReleaseShared(arg)) {//尝试释放资源
+            doReleaseShared();//唤醒后继结点
             return true;
         }
         return false;
