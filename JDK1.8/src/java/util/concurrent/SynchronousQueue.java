@@ -36,11 +36,9 @@
 
 package java.util.concurrent;
 
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.*;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.Consumer;
 
 /**
@@ -82,9 +80,9 @@ import java.util.function.Consumer;
  * @param <E> the type of elements held in this collection
  * @author Doug Lea and Bill Scherer and Michael Scott
  * @since 1.5
+ * http://www.cnblogs.com/leesf456/p/5560362.html
  */
-public class SynchronousQueue<E> extends AbstractQueue<E>
-        implements BlockingQueue<E>, java.io.Serializable {
+public class SynchronousQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = -3223113410248163686L;
 
     /*
@@ -240,7 +238,9 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         /**
          * Returns true if m has fulfilling bit set.
          */
-        static boolean isFulfilling(int m) { return (m & FULFILLING) != 0; }
+        static boolean isFulfilling(int m) {
+            return (m & FULFILLING) != 0;
+        }
 
         /**
          * Node class for TransferStacks.
@@ -1182,7 +1182,8 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      */
 
     @SuppressWarnings("serial")
-    static class WaitQueue implements java.io.Serializable {}
+    static class WaitQueue implements java.io.Serializable {
+    }
 
     static class LifoWaitQueue extends WaitQueue {
         private static final long serialVersionUID = -3633113410248163686L;

@@ -90,6 +90,16 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * NEW -> CANCELLED
      * NEW -> INTERRUPTING -> INTERRUPTED
      */
+    /**
+     * 当前任务的运行状态。
+     * <p>
+     * 可能存在的状态转换
+     * NEW -> COMPLETING -> NORMAL（有正常结果）
+     * NEW -> COMPLETING -> EXCEPTIONAL（结果为异常）
+     * NEW -> CANCELLED（无结果）
+     * NEW -> INTERRUPTING -> INTERRUPTED（无结果）
+     */
+
     private volatile int state;
     private static final int NEW = 0;
     private static final int COMPLETING = 1;
@@ -102,18 +112,22 @@ public class FutureTask<V> implements RunnableFuture<V> {
     /**
      * The underlying callable; nulled out after running
      */
+    //将要执行的任务
     private Callable<V> callable;
     /**
      * The result to return or exception to throw from get()
      */
+    //用于get()返回的结果，也可能是用于get()方法抛出的异常
     private Object outcome; // non-volatile, protected by state reads/writes
     /**
      * The thread running the callable; CASed during run()
      */
+    //执行callable的线程，调用FutureTask.run()方法通过CAS设置
     private volatile Thread runner;
     /**
      * Treiber stack of waiting threads
      */
+    //栈结构的等待队列，该节点是栈中的最顶层节点。
     private volatile WaitNode waiters;
 
     /**
@@ -224,7 +238,8 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * implementation of this method to determine whether this task
      * has been cancelled.
      */
-    protected void done() { }
+    protected void done() {
+    }
 
     /**
      * Sets the result of this future to the given value unless
@@ -262,6 +277,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
     }
 
     public void run() {
+        //保证callable任务只被运行一次
         if (state != NEW ||
                 !UNSAFE.compareAndSwapObject(this, runnerOffset,
                         null, Thread.currentThread()))
@@ -289,6 +305,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
             // state must be re-read after nulling runner to prevent
             // leaked interrupts
             int s = state;
+            //判断该任务是否正在响应中断，如果中断没有完成，则等待中断操作完成
             if (s >= INTERRUPTING)
                 handlePossibleCancellationInterrupt(s);
         }
@@ -364,7 +381,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
         volatile Thread thread;
         volatile WaitNode next;
 
-        WaitNode() { thread = Thread.currentThread(); }
+        WaitNode() {
+            thread = Thread.currentThread();
+        }
     }
 
     /**
@@ -373,6 +392,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
      */
     private void finishCompletion() {
         // assert state > COMPLETING;
+        //通过CAS把栈顶的元素置为null，相当于弹出栈顶元素
         for (WaitNode q; (q = waiters) != null; ) {
             if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) {
                 for (; ; ) {
@@ -403,28 +423,34 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @param nanos time to wait, if timed
      * @return state upon completion
      */
-    private int awaitDone(boolean timed, long nanos)
-            throws InterruptedException {
+    private int awaitDone(boolean timed, long nanos) throws InterruptedException {
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
         WaitNode q = null;
         boolean queued = false;
         for (; ; ) {
+            //如果该线程执行interrupt()方法，则从队列中移除该节点，并抛出异常
             if (Thread.interrupted()) {
                 removeWaiter(q);
                 throw new InterruptedException();
             }
 
             int s = state;
+            //如果state状态大于COMPLETING 则说明任务执行完成，或取消
             if (s > COMPLETING) {
                 if (q != null)
                     q.thread = null;
                 return s;
+                //如果state=COMPLETING，则使用yield，因为此状态的时间特别短，通过yield比挂起响应更快。
             } else if (s == COMPLETING) // cannot time out yet
                 Thread.yield();
             else if (q == null)
+                //构建节点
                 q = new WaitNode();
+                //把当前节点入栈
             else if (!queued)
-                queued = UNSAFE.compareAndSwapObject(this, waitersOffset,q.next = waiters, q);
+                queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
+                //如果需要阻塞指定时间，则使用LockSupport.parkNanos阻塞指定时间
+                //如果到指定时间还没执行完，则从队列中移除该节点，并返回当前状态
             else if (timed) {
                 nanos = deadline - System.nanoTime();
                 if (nanos <= 0L) {
