@@ -53,22 +53,22 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * class Pool {
  *   private static final int MAX_AVAILABLE = 100;
  *   private final Semaphore available = new Semaphore(MAX_AVAILABLE, true);
- * <p>
+ *
  *   public Object getItem() throws InterruptedException {
  *     available.acquire();
  *     return getNextAvailableItem();
  *   }
- * <p>
+ *
  *   public void putItem(Object x) {
  *     if (markAsUnused(x))
  *       available.release();
  *   }
- * <p>
+ *
  *   // Not a particularly efficient data structure; just for demo
- * <p>
+ *
  *   protected Object[] items = ... whatever kinds of items being managed
  *   protected boolean[] used = new boolean[MAX_AVAILABLE];
- * <p>
+ *
  *   protected synchronized Object getNextAvailableItem() {
  *     for (int i = 0; i < MAX_AVAILABLE; ++i) {
  *       if (!used[i]) {
@@ -78,7 +78,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  *     }
  *     return null; // not reached
  *   }
- * <p>
+ *
  *   protected synchronized boolean markAsUnused(Object item) {
  *     for (int i = 0; i < MAX_AVAILABLE; ++i) {
  *       if (item == items[i]) {
@@ -153,6 +153,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  *
  * @author Doug Lea
  * @since 1.5
+ * http://www.cnblogs.com/leesf456/p/5414778.html
  */
 public class Semaphore implements java.io.Serializable {
     private static final long serialVersionUID = -3222578661600680210L;
@@ -176,43 +177,52 @@ public class Semaphore implements java.io.Serializable {
         final int getPermits() {
             return getState();
         }
-
+        // 共享模式下非公平策略获取
         final int nonfairTryAcquireShared(int acquires) {
             for (; ; ) {
+                // 获取许可数
                 int available = getState();
+                // 剩余的许可
                 int remaining = available - acquires;
                 if (remaining < 0 ||
-                        compareAndSetState(available, remaining))
+                        compareAndSetState(available, remaining))// 许可小于0或者比较并且设置状态成功
                     return remaining;
             }
         }
 
-        protected final boolean tryReleaseShared(int releases) {
+        // 共享模式下进行释放
+        protected final boolean tryReleaseShared(int releases) {// 无限循环
             for (; ; ) {
+                // 获取许可
                 int current = getState();
+                // 可用的许可
                 int next = current + releases;
                 if (next < current) // overflow
                     throw new Error("Maximum permit count exceeded");
-                if (compareAndSetState(current, next))
+                if (compareAndSetState(current, next)) // 比较并进行设置成功
                     return true;
             }
         }
 
+        // 根据指定的缩减量减小可用许可的数目
         final void reducePermits(int reductions) {
-            for (; ; ) {
+            for (; ; ) { // 无限循环
+                // 获取许可
                 int current = getState();
                 int next = current - reductions;
                 if (next > current) // underflow
                     throw new Error("Permit count underflow");
-                if (compareAndSetState(current, next))
+                if (compareAndSetState(current, next)) // 比较并进行设置成功
                     return;
             }
         }
 
+        // 获取并返回立即可用的所有许可
         final int drainPermits() {
             for (; ; ) {
+                // 获取许可
                 int current = getState();
-                if (current == 0 || compareAndSetState(current, 0))
+                if (current == 0 || compareAndSetState(current, 0))// 许可为0或者比较并设置成功
                     return current;
             }
         }
@@ -227,7 +237,7 @@ public class Semaphore implements java.io.Serializable {
         NonfairSync(int permits) {
             super(permits);
         }
-
+        // 共享模式下获取
         protected int tryAcquireShared(int acquires) {
             return nonfairTryAcquireShared(acquires);
         }
@@ -244,13 +254,15 @@ public class Semaphore implements java.io.Serializable {
         }
 
         protected int tryAcquireShared(int acquires) {
-            for (; ; ) {
-                if (hasQueuedPredecessors())
+            for (; ; ) {// 无限循环
+                if (hasQueuedPredecessors())// 同步队列中存在其他节点
                     return -1;
+                // 获取许可
                 int available = getState();
+                // 剩余的许可
                 int remaining = available - acquires;
                 if (remaining < 0 ||
-                        compareAndSetState(available, remaining))
+                        compareAndSetState(available, remaining))// 剩余的许可小于0或者比较设置成功
                     return remaining;
             }
         }

@@ -35,8 +35,6 @@
 
 package java.util.concurrent.locks;
 
-import sun.misc.Unsafe;
-
 /**
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
@@ -117,9 +115,12 @@ import sun.misc.Unsafe;
  *     LockSupport.unpark(waiters.peek());
  *   }
  * }}</pre>
+ *
+ * http://www.cnblogs.com/leesf456/p/5347293.html
  */
 public class LockSupport {
-    private LockSupport() {}
+    private LockSupport() {
+    }
     // Cannot be instantiated.
 
     private static void setBlocker(Thread t, Object arg) {
@@ -137,9 +138,11 @@ public class LockSupport {
      *
      * @param thread the thread to unpark, or {@code null}, in which case
      *               this operation has no effect
+     *  ② unpark函数，释放线程的许可，即激活调用park后阻塞的线程。这个函数不是安全的，调用这个函数时要确保线程依旧存活。
      */
     public static void unpark(Thread thread) {
-        if (thread != null)
+        if (thread != null)// 线程为不空
+            // 释放该线程许可
             UNSAFE.unpark(thread);
     }
 
@@ -170,11 +173,20 @@ public class LockSupport {
      * @param blocker the synchronization object responsible for this
      *                thread parking
      * @since 1.6
+     * 　① park函数，阻塞线程，并且该线程在下列情况发生之前都会被阻塞：
+     * ① 调用unpark函数，释放该线程的许可。
+     * ② 该线程被中断。
+     * ③ 设置的时间到了。并且，当time为绝对时间时，isAbsolute为true，否则，isAbsolute为false。当time为0时，表示无限等待，直到unpark发生。
+     *
      */
     public static void park(Object blocker) {
+        // 获取当前线程
         Thread t = Thread.currentThread();
+        // 设置Blocker
         setBlocker(t, blocker);
+        // 获取许可
         UNSAFE.park(false, 0L);
+        // 重新可运行后再此设置Blocker
         setBlocker(t, null);
     }
 
@@ -213,9 +225,13 @@ public class LockSupport {
 
     public static void parkNanos(Object blocker, long nanos) {
         if (nanos > 0) {
+            // 获取当前线程
             Thread t = Thread.currentThread();
+            // 设置Blocker
             setBlocker(t, blocker);
+            // 获取许可，并设置了时间
             UNSAFE.park(false, nanos);
+            // 设置许可
             setBlocker(t, null);
         }
     }
@@ -255,9 +271,11 @@ public class LockSupport {
      */
 
     public static void parkUntil(Object blocker, long deadline) {
+        // 获取当前线程
         Thread t = Thread.currentThread();
         setBlocker(t, blocker);
         UNSAFE.park(true, deadline);
+        // 设置Blocker为null
         setBlocker(t, null);
     }
 
@@ -395,23 +413,29 @@ public class LockSupport {
 
     // Hotspot implementation via intrinsics API
     private static final sun.misc.Unsafe UNSAFE;
+    // 表示内存偏移地址
     private static final long parkBlockerOffset;
+    // 表示内存偏移地址
     private static final long SEED;
+    // 表示内存偏移地址
     private static final long PROBE;
+    // 表示内存偏移地址
     private static final long SECONDARY;
 
     static {
         try {
+            // 获取Unsafe实例
             UNSAFE = sun.misc.Unsafe.getUnsafe();
+            // 线程类类型
             Class<?> tk = Thread.class;
-            parkBlockerOffset = UNSAFE.objectFieldOffset
-                    (tk.getDeclaredField("parkBlocker"));
-            SEED = UNSAFE.objectFieldOffset
-                    (tk.getDeclaredField("threadLocalRandomSeed"));
-            PROBE = UNSAFE.objectFieldOffset
-                    (tk.getDeclaredField("threadLocalRandomProbe"));
-            SECONDARY = UNSAFE.objectFieldOffset
-                    (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
+            // 获取Thread的parkBlocker字段的内存偏移地址
+            parkBlockerOffset = UNSAFE.objectFieldOffset(tk.getDeclaredField("parkBlocker"));
+            // 获取Thread的threadLocalRandomSeed字段的内存偏移地址
+            SEED = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSeed"));
+            // 获取Thread的threadLocalRandomProbe字段的内存偏移地址
+            PROBE = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomProbe"));
+            // 获取Thread的threadLocalRandomSecondarySeed字段的内存偏移地址
+            SECONDARY = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSecondarySeed"));
         } catch (Exception ex) {
             throw new Error(ex);
         }

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.8">
-      <module name="jdksource" target="" />
+      <module name="jdksource" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
