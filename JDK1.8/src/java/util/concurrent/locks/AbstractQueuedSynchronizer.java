@@ -394,6 +394,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
         static final Node EXCLUSIVE = null;
 
         // 结点状态
+        // 0 是waitStatus
         // CANCELLED，值为1，表示当前的线程被取消
         // SIGNAL，值为-1，表示当前节点的后继节点包含的线程需要运行，也就是unpark
         // CONDITION，值为-2，表示当前节点在等待condition，也就是在condition队列中
@@ -848,7 +849,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
         //拿到前驱的状态
         int ws = pred.waitStatus;
-        if (ws == Node.SIGNAL)
+        if (ws == Node.SIGNAL)// 状态为SIGNAL，为-1
             //如果已经告诉前驱拿完号后通知自己一下，那就可以安心休息了
             /*
              * This node has already set status asking a release
@@ -856,7 +857,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
              */
             // 可以进行park操作
             return true;
-        if (ws > 0) {
+        if (ws > 0) { // 表示状态为CANCELLED，为1
             /*
              * Predecessor was cancelled. Skip over predecessors and
              * indicate retry.
@@ -871,7 +872,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             } while (pred.waitStatus > 0); // 找到pred结点前面最近的一个状态不为CANCELLED的结点
             // 赋值pred结点的next域
             pred.next = node;
-        } else {
+        } else {// 为PROPAGATE -3 或者是0 表示无状态,(为CONDITION -2时，表示此节点在condition queue中)
             /*
              * waitStatus must be 0 or PROPAGATE.  Indicate that we
              * need a signal, but don't park yet.  Caller will need to
@@ -2187,7 +2188,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             Node node = addConditionWaiter();
             int savedState = fullyRelease(node);
             int interruptMode = 0;
-            while (!isOnSyncQueue(node)) {
+            while (!isOnSyncQueue(node)) {//判断是否在同步队列
                 // 阻塞当前线程
                 LockSupport.park(this);
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)// 检查结点等待时的中断类型
