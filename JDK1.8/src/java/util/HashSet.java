@@ -86,11 +86,15 @@ import java.io.InvalidObjectException;
  */
 
 public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
+
+    // 版本序列号
     static final long serialVersionUID = -5024744406713321676L;
 
+    // 键值Map
     private transient HashMap<E, Object> map;
 
     // Dummy value to associate with an Object in the backing Map
+    // 用作所有键对应的值，键所对应的值都相等
     private static final Object PRESENT = new Object();
 
     /**

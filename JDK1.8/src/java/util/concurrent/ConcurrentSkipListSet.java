@@ -34,13 +34,13 @@
  */
 
 package java.util.concurrent;
+
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -52,18 +52,14 @@ import java.util.Spliterator;
  * sorted according to their {@linkplain Comparable natural ordering},
  * or by a {@link Comparator} provided at set creation time, depending
  * on which constructor is used.
- *
  * <p>This implementation provides expected average <i>log(n)</i> time
  * cost for the {@code contains}, {@code add}, and {@code remove}
  * operations and their variants.  Insertion, removal, and access
  * operations safely execute concurrently by multiple threads.
- *
  * <p>Iterators and spliterators are
  * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
- *
  * <p>Ascending ordered views and their iterators are faster than
  * descending ones.
- *
  * <p>Beware that, unlike in most collections, the {@code size}
  * method is <em>not</em> a constant-time operation. Because of the
  * asynchronous nature of these sets, determining the current number
@@ -75,25 +71,23 @@ import java.util.Spliterator;
  * to be performed atomically. For example, an iterator operating
  * concurrently with an {@code addAll} operation might view only some
  * of the added elements.
- *
  * <p>This class and its iterators implement all of the
  * <em>optional</em> methods of the {@link Set} and {@link Iterator}
  * interfaces. Like most other concurrent collection implementations,
  * this class does not permit the use of {@code null} elements,
  * because {@code null} arguments and return values cannot be reliably
  * distinguished from the absence of elements.
- *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @author Doug Lea
  * @param <E> the type of elements maintained by this set
+ *
+ * @author Doug Lea
  * @since 1.6
+ * 迭代器是弱一致性的，即在迭代的过程中，可以有其他修改ConcurrentSkipListSet的操作，不会抛出ConcurrentModificationException异常
  */
-public class ConcurrentSkipListSet<E>
-    extends AbstractSet<E>
-    implements NavigableSet<E>, Cloneable, java.io.Serializable {
+public class ConcurrentSkipListSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
 
     private static final long serialVersionUID = -2479143111061671589L;
 
@@ -117,8 +111,8 @@ public class ConcurrentSkipListSet<E>
      * the specified comparator.
      *
      * @param comparator the comparator that will be used to order this set.
-     *        If {@code null}, the {@linkplain Comparable natural
-     *        ordering} of the elements will be used.
+     *                   If {@code null}, the {@linkplain Comparable natural
+     *                   ordering} of the elements will be used.
      */
     public ConcurrentSkipListSet(Comparator<? super E> comparator) {
         m = new ConcurrentSkipListMap<E,Object>(comparator);
@@ -130,10 +124,11 @@ public class ConcurrentSkipListSet<E>
      * {@linkplain Comparable natural ordering}.
      *
      * @param c The elements that will comprise the new set
-     * @throws ClassCastException if the elements in {@code c} are
-     *         not {@link Comparable}, or are not mutually comparable
+     *
+     * @throws ClassCastException   if the elements in {@code c} are
+     *                              not {@link Comparable}, or are not mutually comparable
      * @throws NullPointerException if the specified collection or any
-     *         of its elements are null
+     *                              of its elements are null
      */
     public ConcurrentSkipListSet(Collection<? extends E> c) {
         m = new ConcurrentSkipListMap<E,Object>();
@@ -145,8 +140,9 @@ public class ConcurrentSkipListSet<E>
      * same ordering as the specified sorted set.
      *
      * @param s sorted set whose elements will comprise the new set
+     *
      * @throws NullPointerException if the specified sorted set or any
-     *         of its elements are null
+     *                              of its elements are null
      */
     public ConcurrentSkipListSet(SortedSet<E> s) {
         m = new ConcurrentSkipListMap<E,Object>(s.comparator());
@@ -170,7 +166,7 @@ public class ConcurrentSkipListSet<E>
         try {
             @SuppressWarnings("unchecked")
             ConcurrentSkipListSet<E> clone =
-                (ConcurrentSkipListSet<E>) super.clone();
+                    (ConcurrentSkipListSet<E>) super.clone();
             clone.setMap(new ConcurrentSkipListMap<E,Object>(m));
             return clone;
         } catch (CloneNotSupportedException e) {
@@ -184,7 +180,6 @@ public class ConcurrentSkipListSet<E>
      * Returns the number of elements in this set.  If this set
      * contains more than {@code Integer.MAX_VALUE} elements, it
      * returns {@code Integer.MAX_VALUE}.
-     *
      * <p>Beware that, unlike in most collections, this method is
      * <em>NOT</em> a constant-time operation. Because of the
      * asynchronous nature of these sets, determining the current
@@ -202,6 +197,7 @@ public class ConcurrentSkipListSet<E>
 
     /**
      * Returns {@code true} if this set contains no elements.
+     *
      * @return {@code true} if this set contains no elements
      */
     public boolean isEmpty() {
@@ -214,9 +210,11 @@ public class ConcurrentSkipListSet<E>
      * contains an element {@code e} such that {@code o.equals(e)}.
      *
      * @param o object to be checked for containment in this set
+     *
      * @return {@code true} if this set contains the specified element
-     * @throws ClassCastException if the specified element cannot be
-     *         compared with the elements currently in this set
+     *
+     * @throws ClassCastException   if the specified element cannot be
+     *                              compared with the elements currently in this set
      * @throws NullPointerException if the specified element is null
      */
     public boolean contains(Object o) {
@@ -231,10 +229,12 @@ public class ConcurrentSkipListSet<E>
      * unchanged and returns {@code false}.
      *
      * @param e element to be added to this set
+     *
      * @return {@code true} if this set did not already contain the
-     *         specified element
-     * @throws ClassCastException if {@code e} cannot be compared
-     *         with the elements currently in this set
+     * specified element
+     *
+     * @throws ClassCastException   if {@code e} cannot be compared
+     *                              with the elements currently in this set
      * @throws NullPointerException if the specified element is null
      */
     public boolean add(E e) {
@@ -250,9 +250,11 @@ public class ConcurrentSkipListSet<E>
      * (This set will not contain the element once the call returns.)
      *
      * @param o object to be removed from this set, if present
+     *
      * @return {@code true} if this set contained the specified element
-     * @throws ClassCastException if {@code o} cannot be compared
-     *         with the elements currently in this set
+     *
+     * @throws ClassCastException   if {@code o} cannot be compared
+     *                              with the elements currently in this set
      * @throws NullPointerException if the specified element is null
      */
     public boolean remove(Object o) {
@@ -297,6 +299,7 @@ public class ConcurrentSkipListSet<E>
      * set interface.
      *
      * @param o the object to be compared for equality with this set
+     *
      * @return {@code true} if the specified object is equal to this set
      */
     public boolean equals(Object o) {
@@ -321,12 +324,14 @@ public class ConcurrentSkipListSet<E>
      * a set, this operation effectively modifies this set so that its
      * value is the <i>asymmetric set difference</i> of the two sets.
      *
-     * @param  c collection containing elements to be removed from this set
+     * @param c collection containing elements to be removed from this set
+     *
      * @return {@code true} if this set changed as a result of the call
-     * @throws ClassCastException if the types of one or more elements in this
-     *         set are incompatible with the specified collection
+     *
+     * @throws ClassCastException   if the types of one or more elements in this
+     *                              set are incompatible with the specified collection
      * @throws NullPointerException if the specified collection or any
-     *         of its elements are null
+     *                              of its elements are null
      */
     public boolean removeAll(Collection<?> c) {
         // Override AbstractSet version to avoid unnecessary call to size()
@@ -340,7 +345,7 @@ public class ConcurrentSkipListSet<E>
     /* ---------------- Relational operations -------------- */
 
     /**
-     * @throws ClassCastException {@inheritDoc}
+     * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException if the specified element is null
      */
     public E lower(E e) {
@@ -348,7 +353,7 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
+     * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException if the specified element is null
      */
     public E floor(E e) {
@@ -356,7 +361,7 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
+     * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException if the specified element is null
      */
     public E ceiling(E e) {
@@ -364,7 +369,7 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
+     * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException if the specified element is null
      */
     public E higher(E e) {
@@ -404,9 +409,9 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code fromElement} or
-     *         {@code toElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code fromElement} or
+     *                                  {@code toElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> subSet(E fromElement,
@@ -414,13 +419,13 @@ public class ConcurrentSkipListSet<E>
                                   E toElement,
                                   boolean toInclusive) {
         return new ConcurrentSkipListSet<E>
-            (m.subMap(fromElement, fromInclusive,
-                      toElement,   toInclusive));
+                (m.subMap(fromElement, fromInclusive,
+                        toElement, toInclusive));
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code toElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code toElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> headSet(E toElement, boolean inclusive) {
@@ -428,8 +433,8 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code fromElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code fromElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
@@ -437,9 +442,9 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code fromElement} or
-     *         {@code toElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code fromElement} or
+     *                                  {@code toElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> subSet(E fromElement, E toElement) {
@@ -447,8 +452,8 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code toElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code toElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> headSet(E toElement) {
@@ -456,8 +461,8 @@ public class ConcurrentSkipListSet<E>
     }
 
     /**
-     * @throws ClassCastException {@inheritDoc}
-     * @throws NullPointerException if {@code fromElement} is null
+     * @throws ClassCastException       {@inheritDoc}
+     * @throws NullPointerException     if {@code fromElement} is null
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> tailSet(E fromElement) {
@@ -468,7 +473,6 @@ public class ConcurrentSkipListSet<E>
      * Returns a reverse order view of the elements contained in this set.
      * The descending set is backed by this set, so changes to the set are
      * reflected in the descending set, and vice-versa.
-     *
      * <p>The returned set has an ordering equivalent to
      * {@link Collections#reverseOrder(Comparator) Collections.reverseOrder}{@code (comparator())}.
      * The expression {@code s.descendingSet().descendingSet()} returns a
@@ -482,13 +486,11 @@ public class ConcurrentSkipListSet<E>
 
     /**
      * Returns a {@link Spliterator} over the elements in this set.
-     *
      * <p>The {@code Spliterator} reports {@link Spliterator#CONCURRENT},
      * {@link Spliterator#NONNULL}, {@link Spliterator#DISTINCT},
      * {@link Spliterator#SORTED} and {@link Spliterator#ORDERED}, with an
      * encounter order that is ascending order.  Overriding implementations
      * should document the reporting of additional characteristic values.
-     *
      * <p>The spliterator's comparator (see
      * {@link java.util.Spliterator#getComparator()}) is {@code null} if
      * the set's comparator (see {@link #comparator()}) is {@code null}.
@@ -496,14 +498,15 @@ public class ConcurrentSkipListSet<E>
      * same total ordering as the set's comparator.
      *
      * @return a {@code Spliterator} over the elements in this set
+     *
      * @since 1.8
      */
     @SuppressWarnings("unchecked")
     public Spliterator<E> spliterator() {
         if (m instanceof ConcurrentSkipListMap)
-            return ((ConcurrentSkipListMap<E,?>)m).keySpliterator();
+            return ((ConcurrentSkipListMap<E,?>) m).keySpliterator();
         else
-            return (Spliterator<E>)((ConcurrentSkipListMap.SubMap<E,?>)m).keyIterator();
+            return (Spliterator<E>) ((ConcurrentSkipListMap.SubMap<E,?>) m).keyIterator();
     }
 
     // Support for resetting map in clone
@@ -512,13 +515,14 @@ public class ConcurrentSkipListSet<E>
     }
 
     private static final sun.misc.Unsafe UNSAFE;
-    private static final long mapOffset;
+    private static final long            mapOffset;
+
     static {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> k = ConcurrentSkipListSet.class;
             mapOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("m"));
+                    (k.getDeclaredField("m"));
         } catch (Exception e) {
             throw new Error(e);
         }

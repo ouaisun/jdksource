@@ -474,8 +474,11 @@ public interface List<E> extends Collection<E> {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     default void sort(Comparator<? super E> c) {
+        // 转化为数组
         Object[] a = this.toArray();
+        // 调用Arrays类的sort函数
         Arrays.sort(a, (Comparator) c);
+        // 迭代器
         ListIterator<E> i = this.listIterator();
         for (Object e : a) {
             i.next();
