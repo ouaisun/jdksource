@@ -25,12 +25,11 @@
 
 package java.nio.channels.spi;
 
-import java.nio.channels.*;
+import java.nio.channels.SelectionKey;
 
 
 /**
  * Base implementation class for selection keys.
- *
  * <p> This class tracks the validity of the key and implements cancellation.
  *
  * @author Mark Reinhold
@@ -38,9 +37,7 @@ import java.nio.channels.*;
  * @since 1.4
  */
 
-public abstract class AbstractSelectionKey
-    extends SelectionKey
-{
+public abstract class AbstractSelectionKey extends SelectionKey {
 
     /**
      * Initializes a new instance of this class.
@@ -59,7 +56,6 @@ public abstract class AbstractSelectionKey
 
     /**
      * Cancels this key.
-     *
      * <p> If this key has not yet been cancelled then it is added to its
      * selector's cancelled-key set while synchronized on that set.  </p>
      */
@@ -70,7 +66,7 @@ public abstract class AbstractSelectionKey
         synchronized (this) {
             if (valid) {
                 valid = false;
-                ((AbstractSelector)selector()).cancel(this);
+                ((AbstractSelector) selector()).cancel(this);
             }
         }
     }
