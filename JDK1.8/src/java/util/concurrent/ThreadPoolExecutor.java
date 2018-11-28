@@ -561,8 +561,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * The default rejected execution handler
      */
     // 默认拒绝执行处理器
-    private static final RejectedExecutionHandler defaultHandler =
-        new AbortPolicy();
+    private static final RejectedExecutionHandler defaultHandler = new AbortPolicy();
 
     /**
      * Permission required for callers of shutdown and shutdownNow.
@@ -584,8 +583,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * and failure to actually interrupt will merely delay response to
      * configuration changes so is not handled exceptionally.
      */
-    private static final RuntimePermission shutdownPerm =
-        new RuntimePermission("modifyThread");
+    private static final RuntimePermission shutdownPerm = new RuntimePermission("modifyThread");
 
     /**
      * Class Worker mainly maintains interrupt control state for
@@ -603,10 +601,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * state to a negative value, and clear it upon start (in
      * runWorker).
      */
-    private final class Worker
-        extends AbstractQueuedSynchronizer
-        implements Runnable
-    {
+    private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
         /**
          * This class will never be serialized, but we provide a
          * serialVersionUID to suppress a javac warning.
@@ -940,10 +935,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             int rs = runStateOf(c);
 
             // Check if queue empty only if necessary.
-            if (rs >= SHUTDOWN &&// 状态为SHUTDOWN
-                ! (rs == SHUTDOWN && // 状态大于等于SHUTDOWN，初始的ctl为RUNNING，小于SHUTDOWN
-                   firstTask == null &&  // 第一个任务为null
-                   ! workQueue.isEmpty()))// worker队列不为空
+			// 状态为SHUTDOWN
+            if (rs >= SHUTDOWN && ! (rs == SHUTDOWN && firstTask == null &&  ! workQueue.isEmpty()))// worker队列不为空 
                 // 返回
                 return false;
 
@@ -984,8 +977,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     // 线程池的运行状态
                     int rs = runStateOf(ctl.get());
 
-                    if (rs < SHUTDOWN ||// 小于SHUTDOWN
-                        (rs == SHUTDOWN && firstTask == null)) {// 等于SHUTDOWN并且firstTask为null
+                    if (rs < SHUTDOWN ||(rs == SHUTDOWN && firstTask == null)) {// 小于SHUTDOWN// 等于SHUTDOWN并且firstTask为null
                         if (t.isAlive()) // precheck that t is startable // 线程刚添加进来，还未启动就存活
                             // 抛出线程状态异常
                             throw new IllegalThreadStateException();
@@ -1442,7 +1434,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          * 1. 如果运行的线程小于corePoolSize,则尝试使用用户定义的Runnalbe对象创建一个新的线程
          *     调用addWorker函数会原子性的检查runState和workCount，通过返回false来防止在不应
          *     该添加线程时添加了线程
-         * 2. 如果一个任务能够成功入队列，在添加一个线城时仍需要进行双重检查（因为在前一次检查后
+         * 2. 如果一个任务能够成功入队列，在添加一个线程时仍需要进行双重检查（因为在前一次检查后
          *     该线程死亡了），或者当进入到此方法时，线程池已经shutdown了，所以需要再次检查状态，
          *    若有必要，当停止时还需要回滚入队列操作，或者当线程池没有线程时需要创建一个新线程
          * 3. 如果无法入队列，那么需要增加一个新线程，如果此操作失败，那么就意味着线程池已经shut
@@ -1677,8 +1669,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * @return {@code true} if a thread was started
      */
     public boolean prestartCoreThread() {
-        return workerCountOf(ctl.get()) < corePoolSize &&
-            addWorker(null, true);
+        return workerCountOf(ctl.get()) < corePoolSize && addWorker(null, true);
     }
 
     /**
@@ -1883,7 +1874,6 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 if (r instanceof Future<?> && ((Future<?>)r).isCancelled())
                     q.remove(r);
         }
-
         tryTerminate(); // In case SHUTDOWN and now empty
     }
 
@@ -1900,8 +1890,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         try {
             // Remove rare and surprising possibility of
             // isTerminated() && getPoolSize() > 0
-            return runStateAtLeast(ctl.get(), TIDYING) ? 0
-                : workers.size();
+            return runStateAtLeast(ctl.get(), TIDYING) ? 0 : workers.size();
         } finally {
             mainLock.unlock();
         }
