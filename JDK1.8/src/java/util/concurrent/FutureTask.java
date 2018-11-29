@@ -186,8 +186,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
 
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (!(state == NEW &&
-                UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
-                        mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
+                UNSAFE.compareAndSwapInt(this, stateOffset, NEW, mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
             return false;
         try {    // in case call to interrupt throws exception
             if (mayInterruptIfRunning) {
@@ -218,13 +217,11 @@ public class FutureTask<V> implements RunnableFuture<V> {
     /**
      * @throws CancellationException {@inheritDoc}
      */
-    public V get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
+    public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (unit == null)
             throw new NullPointerException();
         int s = state;
-        if (s <= COMPLETING &&
-                (s = awaitDone(true, unit.toNanos(timeout))) <= COMPLETING)
+        if (s <= COMPLETING && (s = awaitDone(true, unit.toNanos(timeout))) <= COMPLETING)
             throw new TimeoutException();
         return report(s);
     }
@@ -251,6 +248,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @param v the value
      */
     protected void set(V v) {
+		//设置成功则将NEW 改变为 COMPLETING状态
         if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {
             outcome = v;
             UNSAFE.putOrderedInt(this, stateOffset, NORMAL); // final state
@@ -278,16 +276,16 @@ public class FutureTask<V> implements RunnableFuture<V> {
 
     public void run() {
         //保证callable任务只被运行一次
-        if (state != NEW ||
-                !UNSAFE.compareAndSwapObject(this, runnerOffset,
-                        null, Thread.currentThread()))
+        if (state != NEW || !UNSAFE.compareAndSwapObject(this, runnerOffset,null, Thread.currentThread()))
             return;
         try {
             Callable<V> c = callable;
+			// 只有初始状态才会执行
             if (c != null && state == NEW) {
                 V result;
                 boolean ran;
                 try {
+					// 执行任务
                     result = c.call();
                     ran = true;
                 } catch (Throwable ex) {
@@ -295,6 +293,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     ran = false;
                     setException(ex);
                 }
+				// 如果执行成功，设置返回结果
                 if (ran)
                     set(result);
             }
@@ -321,9 +320,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @return {@code true} if successfully run and reset
      */
     protected boolean runAndReset() {
-        if (state != NEW ||
-                !UNSAFE.compareAndSwapObject(this, runnerOffset,
-                        null, Thread.currentThread()))
+        if (state != NEW || !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()))
             return false;
         boolean ran = false;
         int s = state;
@@ -410,9 +407,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                 break;
             }
         }
-
         done();
-
         callable = null;        // to reduce footprint
     }
 
@@ -424,6 +419,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @return state upon completion
      */
     private int awaitDone(boolean timed, long nanos) throws InterruptedException {
+		// 计算到期时间
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
         WaitNode q = null;
         boolean queued = false;
@@ -475,19 +471,27 @@ public class FutureTask<V> implements RunnableFuture<V> {
      */
     private void removeWaiter(WaitNode node) {
         if (node != null) {
+			// 将thread设置为null是因为下面要根据thread是否为null判断是否要把node移出
             node.thread = null;
+			// 这里自旋保证删除成功
             retry:
             for (; ; ) {          // restart on removeWaiter race
                 for (WaitNode pred = null, q = waiters, s; q != null; q = s) {
                     s = q.next;
+					// q.thread != null 说明该q节点不需要移除
                     if (q.thread != null)
                         pred = q;
+					// 如果q.thread == null，且pred != null，需要删除q节点
                     else if (pred != null) {
                         pred.next = s;
+						// pred.thread == null时说明在并发情况下被其他线程修改了；
+						// 返回第一个for循环重试
                         if (pred.thread == null) // check for race
                             continue retry;
-                    } else if (!UNSAFE.compareAndSwapObject(this, waitersOffset,
-                            q, s))
+                    } 
+					// 如果q.thread != null且pred == null，说明q是栈顶节点
+					// 设置栈顶元素为s节点，如果失败则返回重试
+					else if (!UNSAFE.compareAndSwapObject(this, waitersOffset,q, s))
                         continue retry;
                 }
                 break;
@@ -505,12 +509,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> k = FutureTask.class;
-            stateOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("state"));
-            runnerOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("runner"));
-            waitersOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("waiters"));
+            stateOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("state"));
+            runnerOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("runner"));
+            waitersOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("waiters"));
         } catch (Exception e) {
             throw new Error(e);
         }
