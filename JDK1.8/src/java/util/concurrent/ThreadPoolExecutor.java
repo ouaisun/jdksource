@@ -1228,7 +1228,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             }
             completedAbruptly = false;
         } finally {
-            // 处理完成后，调用钩子函数
+            // 处理完成后，调用钩子函数 关闭工作线程
             processWorkerExit(w, completedAbruptly);
         }
     }
@@ -1448,7 +1448,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             // 不成功则再次获取线程池控制状态
             c = ctl.get();
         }
-        // 线程池处于RUNNING状态，将命令（用户自定义的Runnable对象）添加进workQueue队列
+        // 线程池处于RUNNING状态，将命令（用户自定义的Runnable对象）
+		// ****** 添加进workQueue队列
         if (isRunning(c) && workQueue.offer(command)) {
             // 再次检查，获取线程池控制状态
             int recheck = ctl.get();
