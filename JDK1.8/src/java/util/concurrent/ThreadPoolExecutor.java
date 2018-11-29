@@ -936,15 +936,16 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
             // Check if queue empty only if necessary.
 			// 状态为SHUTDOWN
-            if (rs >= SHUTDOWN && ! (rs == SHUTDOWN && firstTask == null &&  ! workQueue.isEmpty()))// worker队列不为空 
+            if (rs >= SHUTDOWN && ! (rs == SHUTDOWN && firstTask == null &&  ! workQueue.isEmpty()))// worker队列不为空
                 // 返回
                 return false;
 
             for (;;) {
                 // worker数量
                 int wc = workerCountOf(c);
-                if (wc >= CAPACITY || // worker数量大于等于最大容量
-                    wc >= (core ? corePoolSize : maximumPoolSize)) // worker数量大于等于核心线程池大小或者最大线程池大小
+				 // worker数量大于等于最大容量
+				 // worker数量大于等于核心线程池大小或者最大线程池大小
+                if (wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize))
                     return false;
                 if (compareAndIncrementWorkerCount(c))// 比较并增加worker的数量
                     // 跳出外层循环
@@ -1003,7 +1004,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 }
             }
         } finally {
-            if (! workerStarted) // worker没有开始
+            if (!workerStarted) // worker没有开始
                 // 添加worker失败
                 addWorkerFailed(w);
         }
@@ -1043,7 +1044,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * @param w the worker
      * @param completedAbruptly if the worker died due to user exception
      */
-    private void processWorkerExit(Worker w, boolean completedAbruptly) {
+	private void processWorkerExit(Worker w, boolean completedAbruptly) {
         if (completedAbruptly) // If abrupt, then workerCount wasn't adjusted
             decrementWorkerCount();
 
@@ -1181,9 +1182,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     final void runWorker(Worker w) {
         // 获取当前线程
         Thread wt = Thread.currentThread();
-        // 获取w的firstTask
+        // 获取工作线程的firstTask，也就是用户提交得任务
         Runnable task = w.firstTask;
-        // 设置w的firstTask为null
+        // 将工作线程得firstTask为null
         w.firstTask = null;
         w.unlock(); // allow interrupts
         // 释放锁（设置state为0，允许中断）
@@ -1196,10 +1197,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 // if not, ensure thread is not interrupted.  This
                 // requires a recheck in second case to deal with
                 // shutdownNow race while clearing interrupt
-                if ((runStateAtLeast(ctl.get(), STOP) ||// 线程池的运行状态至少应该高于STOP
-                     (Thread.interrupted() && // 线程被中断
-                      runStateAtLeast(ctl.get(), STOP))) && // 再次检查，线程池的运行状态至少应该高于STOP
-                    !wt.isInterrupted())// wt线程（当前线程）没有被中断
+                // 线程池的运行状态至少应该高于STOP
+                // 线程被中断 // 再次检查，线程池的运行状态至少应该高于STOP // wt线程（当前线程）没有被中断
+                if ((runStateAtLeast(ctl.get(), STOP) || (Thread.interrupted() && runStateAtLeast(ctl.get(), STOP)))
+                     && !wt.isInterrupted())
                     wt.interrupt(); // 中断wt线程（当前线程）
                 try {
                     // 在执行之前调用钩子函数
@@ -1442,14 +1443,18 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          */
         // 获取线程池控制状态
         int c = ctl.get();
-        if (workerCountOf(c) < corePoolSize) {// worker数量小于corePoolSize
-            if (addWorker(command, true)) // 添加worker
-                return; // 成功则返回
+		// worker数量小于corePoolSize
+        if (workerCountOf(c) < corePoolSize) {
+			// 添加worker
+            if (addWorker(command, true))
+				// 成功则返回
+                return;
+
             // 不成功则再次获取线程池控制状态
             c = ctl.get();
         }
-        // 线程池处于RUNNING状态，将命令（用户自定义的Runnable对象）
-		// ****** 添加进workQueue队列
+
+        // 线程池处于RUNNING状态，将命令（用户自定义的Runnable对象）添加进workQueue队列
         if (isRunning(c) && workQueue.offer(command)) {
             // 再次检查，获取线程池控制状态
             int recheck = ctl.get();
@@ -1457,11 +1462,27 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             if (! isRunning(recheck) && remove(command))
                 // 拒绝执行命令
                 reject(command);
-            else if (workerCountOf(recheck) == 0) // worker数量等于0
-                // 添加worker
+
+			/*
+	         * 获取线程池中的有效线程数，如果数量是0，则执行addWorker方法
+	         * 这里传入的参数表示：
+	         * 1. 第一个参数为null，表示在线程池中创建一个线程，但不去启动；
+	         * 2. 第二个参数为false，将线程池的有限线程数量的上限设置为maximumPoolSize，添加线程时根据maximumPoolSize来判断；
+	         * 如果判断workerCount大于0，则直接返回，在workQueue中新增的command会在将来的某个时刻被执行。
+	         */
+            else if (workerCountOf(recheck) == 0)
+				//创建一个工作线程
                 addWorker(null, false);
+
         }
-        else if (!addWorker(command, false)) // 添加worker失败
+		/*
+		 * 如果执行到这里，有两种情况：
+		 * 1. 线程池已经不是RUNNING状态；
+		 * 2. 线程池是RUNNING状态，但workerCount >= corePoolSize并且workQueue已满。
+		 * 这时，再次调用addWorker方法，但第二个参数传入为false，将线程池的有限线程数量的上限设置为maximumPoolSize；
+		 * 如果失败则拒绝该任务
+		 */
+		else if (!addWorker(command, false)) // 添加worker失败
             // 拒绝执行命令
             reject(command);
     }
