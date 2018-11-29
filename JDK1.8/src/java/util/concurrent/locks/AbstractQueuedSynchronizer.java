@@ -2151,9 +2151,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
          * 0 if not interrupted.
          */
         private int checkInterruptWhileWaiting(Node node) {
-            return Thread.interrupted() ?
-                    (transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) :
-                    0;
+            return Thread.interrupted() ? (transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) : 0;
         }
 
         /**
@@ -2182,22 +2180,31 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
          * </ol>
          */  // // 等待，当前线程在接到信号或被中断之前一直处于等待状态
         public final void await() throws InterruptedException {
-            if (Thread.interrupted())// 当前线程被中断，抛出异常
+	        // 当前线程被中断，抛出异常
+            if (Thread.interrupted())
                 throw new InterruptedException();
-            // 在wait队列上添加一个结点
+
+			// 根据当前线程创建一个Node添加到Condition队列中
             Node node = addConditionWaiter();
+			// 释放当前线程的lock，从AQS的队列中移出
             int savedState = fullyRelease(node);
             int interruptMode = 0;
-            while (!isOnSyncQueue(node)) {//判断是否在同步队列
+			// 循环判断当前线程的Node是否在Sync队列中，如果不在，则park
+            while (!isOnSyncQueue(node)) {
                 // 阻塞当前线程
                 LockSupport.park(this);
-                if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)// 检查结点等待时的中断类型
+				// checkInterruptWhileWaiting方法根据中断发生的时机返回后续需要处理这次中断的方式，如果发生中断，退出循环
+                if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
                     break;
             }
+			// acquireQueued获取锁并返回线程是否中断
+			// 如果线程被中断，并且中断的方式不是抛出异常，则设置中断后续的处理方式设置为REINTERRUPT
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
+			 // 从头到尾遍历Condition队列，移除被cancel的节点
             if (node.nextWaiter != null) // clean up if cancelled
                 unlinkCancelledWaiters();
+			 // 如果线程已经被中断，则根据之前获取的interruptMode的值来判断是继续中断还是抛出异常
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
         }
